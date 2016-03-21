@@ -150,7 +150,7 @@
             this.toolStripMenuItem_deleteLastImage,
             this.toolStripMenuItem_deleteAllLastOperationImages});
 			this.contextMenuStrip_pictureBox.Name = "contextMenuStrip_pictureBox";
-			this.contextMenuStrip_pictureBox.Size = new System.Drawing.Size(178, 70);
+			this.contextMenuStrip_pictureBox.Size = new System.Drawing.Size(178, 48);
 			this.contextMenuStrip_pictureBox.Opening += new System.ComponentModel.CancelEventHandler(this.contextMenuStrip_pictureBox_Opening);
 			this.contextMenuStrip_pictureBox.ItemClicked += new System.Windows.Forms.ToolStripItemClickedEventHandler(this.contextMenuStrip_pictureBox_ItemClicked);
 			// 
@@ -318,6 +318,7 @@
 			this.Controls.Add(this.btnSnip);
 			this.Controls.Add(this.btnOpenFiles);
 			this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
+			this.KeyPreview = true;
 			this.MaximizeBox = false;
 			this.MaximumSize = new System.Drawing.Size(440, 480);
 			this.MinimumSize = new System.Drawing.Size(440, 480);
@@ -327,6 +328,7 @@
 			this.Load += new System.EventHandler(this.Main_Load);
 			this.DragDrop += new System.Windows.Forms.DragEventHandler(this.Main_DragDrop);
 			this.DragEnter += new System.Windows.Forms.DragEventHandler(this.Main_DragEnter);
+			this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.Main_KeyDown);
 			((System.ComponentModel.ISupportInitialize)(this.pbImage)).EndInit();
 			this.contextMenuStrip_pictureBox.ResumeLayout(false);
 			this.statusStrip1.ResumeLayout(false);

@@ -352,10 +352,23 @@ namespace ImgurWin
 		private void ButtonTable_ButtonClick(object sender, string tag)
 		{
 			if (tag == null)
+			{
+				UpdateStatusLabel("Error. Button was not configured.");
 				return;
+			}
+			if (IsOperationInProgress())
+			{
+				UpdateStatusLabel("Wait for operation to complete.");
+				return;
+			}
 			if (tag == "Open Imgur Page")
 			{
 				string[] imageIds = GetImgurIdsFromLastOperation();
+				if (imageIds.Length == 0)
+				{
+					UpdateStatusLabel("No images have been uploaded.");
+					return;
+				}
 				foreach (string id in imageIds)
 					Process.Start("http://imgur.com/" + id);
 				UpdateStatusLabel("Opened " + imageIds.Length + " imgur page" + (imageIds.Length == 1 ? "" : "s"));
@@ -371,6 +384,11 @@ namespace ImgurWin
 				string type = parts[0]; // "URL", "HTML", "BBCode", "Linked HTML", "Linked BBCode", "Open"
 				string suffix = parts[1];
 				string[] imageUrls = GetImgurUrlsFromLastOperation();
+				if (imageUrls.Length == 0)
+				{
+					UpdateStatusLabel("No images have been uploaded.");
+					return;
+				}
 				string[] imageUrlsWithSuffix = new string[imageUrls.Length];
 				for (int i = 0; i < imageUrls.Length; i++)
 					imageUrlsWithSuffix[i] = InsertImageSuffix(imageUrls[i], suffix);
@@ -735,7 +753,7 @@ namespace ImgurWin
 		#region Text lines as input
 		private void HandleTextLinesAsInput(string[] lines, string inputMethod)
 		{
-			if (lines.Length > 25)
+			if (lines.Length > 25) // This limit is partly because all users of ImgurWin share a rate-limiting credit pool, and partly to prevent a poor experience if a very large block of text is pasted in by accident.2
 				MessageBoxShow("Too many text lines from " + inputMethod + ". Please limit the list of items to 25 or fewer.");
 			int errorMessagesShown = 0;
 			for (int i = 0; i < lines.Length; i++)
@@ -876,5 +894,12 @@ namespace ImgurWin
 			toolStripMenuItem_deleteAllLastOperationImages.Text = "Delete all " + GetImgurIdsFromLastOperation().Length + " images";
 		}
 		#endregion
+
+		private void Main_KeyDown(object sender, KeyEventArgs e)
+		{
+			status_label.Text = e.KeyCode.ToString();
+			if (e.KeyCode == Keys.V && e.Modifiers.HasFlag(Keys.Control))
+				btnPaste_Click(null, null);
+		}
 	}
 }

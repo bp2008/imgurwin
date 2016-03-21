@@ -45,6 +45,9 @@ namespace ImgurWin
 			Rectangle labelRect = Rectangle.Empty;
 			bool ifNextClickIsRightThenClose = false;
 
+			Rectangle finalSnippingSelection = Rectangle.Empty;
+			bool readyForCapture = false;
+
 			f.Paint += (object sender, PaintEventArgs e) =>
 			{
 				string label;
@@ -94,7 +97,6 @@ namespace ImgurWin
 			};
 			f.MouseUp += (object sender, MouseEventArgs e) =>
 			{
-				Rectangle finalSnippingSelection = Rectangle.Empty;
 				if (isMouseDown && e.Button == MouseButtons.Left)
 				{
 					isMouseDown = false;
@@ -109,6 +111,7 @@ namespace ImgurWin
 					if (finalSnippingSelection.Width >= 10 && finalSnippingSelection.Height >= 10)
 						try
 						{
+							f.Hide();
 							frmMain.AcceptSnip(ScreenCapture.CaptureScreenshotRect(finalSnippingSelection));
 						}
 						catch (Exception ex)
