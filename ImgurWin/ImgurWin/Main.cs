@@ -56,7 +56,10 @@ namespace ImgurWin
 				throw new OperationStartCanceledException();
 			}
 			lock (imgurIdsFromLastOperation)
+			{
 				imgurIdsFromLastOperation.Clear();
+				imgurUrlsFromLastOperation.Clear();
+			}
 		}
 		private string[] GetImgurIdsFromLastOperation()
 		{
