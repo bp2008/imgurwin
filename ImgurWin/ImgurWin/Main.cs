@@ -900,7 +900,6 @@ namespace ImgurWin
 
 		private void Main_KeyDown(object sender, KeyEventArgs e)
 		{
-			status_label.Text = e.KeyCode.ToString();
 			if (e.KeyCode == Keys.V && e.Modifiers.HasFlag(Keys.Control))
 				btnPaste_Click(null, null);
 		}
