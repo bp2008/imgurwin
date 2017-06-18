@@ -13,5 +13,7 @@ namespace ImgurWin
 		public string account_username = "";
 		public string token_type = "";
 		public bool disableWebProxy = true;
+		public bool hqMode = false;
+		public bool freezeWhileSnipping = false;
 	}
 }

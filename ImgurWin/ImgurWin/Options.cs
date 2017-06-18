@@ -18,6 +18,7 @@ namespace ImgurWin
 			this.frmMain = frmMain;
 			InitializeComponent();
 			SetLoginStatus(frmMain.loginStatus);
+			cbFreezeScreenWhileSnipping.Checked = frmMain.cfg.freezeWhileSnipping;
 		}
 
 		private void SetLoginStatus(LoginStatus status)
@@ -63,6 +64,12 @@ namespace ImgurWin
 			frmPin.Show();
 
 			frmMain.DoLogin();
+		}
+
+		private void cbFreezeScreenWhileSnipping_CheckedChanged(object sender, EventArgs e)
+		{
+			frmMain.cfg.freezeWhileSnipping = cbFreezeScreenWhileSnipping.Checked;
+			frmMain.cfg.Save();
 		}
 	}
 }

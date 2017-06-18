@@ -20,25 +20,58 @@ namespace ImgurWin
 				left = Math.Min(left, s.Bounds.Left);
 				right = Math.Max(right, s.Bounds.Right);
 			}
-			Form f = new DoubleBufferedForm();
-			f.ShowInTaskbar = false;
-			f.Text = "Screen Capture";
-			f.BackColor = Color.CornflowerBlue;
-			f.TransparencyKey = Color.CornflowerBlue;
-			f.FormBorderStyle = FormBorderStyle.None;
-			f.Padding = Padding.Empty;
-			f.TopMost = true;
-			f.Cursor = Cursors.Cross;
-			f.FormClosing += (object sender, FormClosingEventArgs e) => { frmMain.Show(); };
 
 			frmMain.Hide();
-			f.Show();
+			frmMain.Opacity = 0;
+
+			Form hud = new DoubleBufferedForm();
+			Color defaultTransparencyKey = hud.TransparencyKey;
+			hud.ShowInTaskbar = false;
+			hud.Text = "Screen Capture";
+			hud.BackColor = Color.CornflowerBlue;
+			hud.TransparencyKey = Color.CornflowerBlue;
+			hud.FormBorderStyle = FormBorderStyle.None;
+			hud.Padding = Padding.Empty;
+			hud.TopMost = true;
+			hud.Cursor = Cursors.Cross;
+
+			Form bg;
+			if (frmMain.cfg.freezeWhileSnipping)
+				bg = hud;
+			else
+			{
+				bg = new Form();
+				bg.ShowInTaskbar = false;
+				bg.Text = "Screen Capture BG";
+				bg.BackColor = Color.White;
+				bg.Opacity = 0.2;
+				bg.FormBorderStyle = FormBorderStyle.None;
+				bg.Padding = Padding.Empty;
+				bg.TopMost = true;
+				bg.Cursor = Cursors.Cross;
+			}
+			Bitmap baseScreenShot = null;
+			hud.FormClosing += (object sender, FormClosingEventArgs e) =>
+			{
+				if (bg != hud)
+					bg.Close();
+				frmMain.Opacity = 1;
+				frmMain.Show();
+				baseScreenShot?.Dispose();
+			};
+
+
+			hud.Show();
+			if (bg != hud)
+				bg.Show();
 
 			Rectangle screenBounds = new Rectangle(left, top, right - left, bottom - top);
 
-			f.Bounds = screenBounds;
+			hud.Bounds = screenBounds;
+			if (bg != hud)
+				bg.Bounds = screenBounds;
 
-			Rectangle clientBounds = f.RectangleToClient(screenBounds);
+			Rectangle clientBounds = hud.RectangleToClient(screenBounds);
 
 			bool isMouseDown = false;
 			int mouseStartX = 0, mouseStartY = 0, mouseEndX = 0, mouseEndY = 0;
@@ -48,8 +81,16 @@ namespace ImgurWin
 			Rectangle finalSnippingSelection = Rectangle.Empty;
 			bool readyForCapture = false;
 
-			f.Paint += (object sender, PaintEventArgs e) =>
+			hud.Paint += (object sender, PaintEventArgs e) =>
 			{
+				if (frmMain.cfg.freezeWhileSnipping)
+				{
+					if (baseScreenShot == null)
+						baseScreenShot = ScreenCapture.CaptureScreenshotRect(screenBounds);
+					if (hud.TransparencyKey != defaultTransparencyKey)
+						hud.TransparencyKey = defaultTransparencyKey;
+					e.Graphics.DrawImage(baseScreenShot, 0, 0, hud.Width, hud.Height);
+				}
 				string label;
 				Size labelOffset = Size.Empty;
 				SizeF labelSize = Size.Empty;
@@ -95,7 +136,7 @@ namespace ImgurWin
 				e.Graphics.DrawRectangle(Pens.Black, labelRect);
 				e.Graphics.DrawString(label, font, Brushes.Black, labelRect.X + 3, labelRect.Y + 3);
 			};
-			f.MouseUp += (object sender, MouseEventArgs e) =>
+			bg.MouseUp += (object sender, MouseEventArgs e) =>
 			{
 				if (isMouseDown && e.Button == MouseButtons.Left)
 				{
@@ -107,21 +148,29 @@ namespace ImgurWin
 					int y = Math.Min(mouseStartY, mouseEndY);
 					int w = Math.Abs(mouseEndX - mouseStartX);
 					int h = Math.Abs(mouseEndY - mouseStartY);
-					finalSnippingSelection = f.RectangleToScreen(new Rectangle(x, y, w, h));
+					finalSnippingSelection = new Rectangle(x, y, w, h);
+					if (!frmMain.cfg.freezeWhileSnipping || baseScreenShot == null)
+						finalSnippingSelection = hud.RectangleToScreen(finalSnippingSelection);
 					if (finalSnippingSelection.Width >= 10 && finalSnippingSelection.Height >= 10)
 						try
 						{
-							f.Hide();
-							frmMain.AcceptSnip(ScreenCapture.CaptureScreenshotRect(finalSnippingSelection));
+							hud.Hide();
+							hud.Opacity = 0;
+							bg.Hide();
+							bg.Opacity = 0;
+							if (frmMain.cfg.freezeWhileSnipping && baseScreenShot != null)
+								frmMain.AcceptSnip(baseScreenShot.Clone(finalSnippingSelection, baseScreenShot.PixelFormat));
+							else
+								frmMain.AcceptSnip(ScreenCapture.CaptureScreenshotRect(finalSnippingSelection));
 						}
 						catch (Exception ex)
 						{
 							Main.MessageBoxShow(ex);
 						}
-					f.Close();
+					hud.Close();
 				}
 			};
-			f.MouseDown += (object sender, MouseEventArgs e) =>
+			bg.MouseDown += (object sender, MouseEventArgs e) =>
 			{
 				ifNextClickIsRightThenClose = false;
 				if (e.Button == MouseButtons.Left)
@@ -134,21 +183,26 @@ namespace ImgurWin
 				{
 					if (isMouseDown)
 					{
-						f.Invalidate();
+						hud.Invalidate();
 						isMouseDown = false;
 					}
 					else
 						ifNextClickIsRightThenClose = true;
 				}
 			};
-			f.Click += (object sender, EventArgs e) =>
+			bg.Click += (object sender, EventArgs e) =>
 			{
 				if (ifNextClickIsRightThenClose && ((MouseEventArgs)e).Button == MouseButtons.Right)
-					f.Close();
+					hud.Close();
 				else
 					ifNextClickIsRightThenClose = false;
 			};
-			f.MouseMove += (object sender, MouseEventArgs e) =>
+			bg.KeyDown += (object sender, KeyEventArgs e) =>
+			{
+				if (e.KeyCode == Keys.Escape)
+					hud.Close();
+			};
+			bg.MouseMove += (object sender, MouseEventArgs e) =>
 			{
 				if (isMouseDown)
 				{
@@ -156,14 +210,14 @@ namespace ImgurWin
 					int y = Math.Min(mouseStartY, mouseEndY);
 					int w = Math.Abs(mouseEndX - mouseStartX);
 					int h = Math.Abs(mouseEndY - mouseStartY);
-					f.Invalidate(new Rectangle(x - 1, y - 1, w + 3, h + 3));
+					hud.Invalidate(new Rectangle(x - 1, y - 1, w + 3, h + 3));
 					mouseEndX = e.X;
 					mouseEndY = e.Y;
 					x = Math.Min(mouseStartX, mouseEndX);
 					y = Math.Min(mouseStartY, mouseEndY);
 					w = Math.Abs(mouseEndX - mouseStartX);
 					h = Math.Abs(mouseEndY - mouseStartY);
-					f.Invalidate(new Rectangle(x - 1, y - 1, w + 3, h + 3));
+					hud.Invalidate(new Rectangle(x - 1, y - 1, w + 3, h + 3));
 				}
 				else
 				{
@@ -174,10 +228,10 @@ namespace ImgurWin
 				{
 					Rectangle invalidateRect = labelRect;
 					invalidateRect.Inflate(2, 2);
-					f.Invalidate(invalidateRect);
+					hud.Invalidate(invalidateRect);
 				}
 				else
-					f.Invalidate();
+					hud.Invalidate();
 			};
 		}
 

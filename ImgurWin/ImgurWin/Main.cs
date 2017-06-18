@@ -120,6 +120,10 @@ namespace ImgurWin
 			buttonTable.ButtonClick += ButtonTable_ButtonClick;
 
 			gmh.MouseUp += Gmh_MouseUp;
+
+			//cbHighQuality.CheckedChanged -= cbHighQuality_CheckedChanged;
+			cbHighQuality.Checked = cfg.hqMode;
+			//cbHighQuality.CheckedChanged += cbHighQuality_CheckedChanged;
 		}
 
 		#region Misc UI Events
@@ -153,6 +157,12 @@ namespace ImgurWin
 				catch (Exception ex) { MessageBoxShow(ex.ToString()); }
 			Options newOptions = frmOptions = new Options(this);
 			newOptions.Show();
+		}
+
+		private void cbHighQuality_CheckedChanged(object sender, EventArgs e)
+		{
+			cfg.hqMode = cbHighQuality.Checked;
+			cfg.Save();
 		}
 		#endregion
 		#region ResponseRecieved event handler
@@ -339,7 +349,9 @@ namespace ImgurWin
 		private void Gmh_MouseUp(object sender, MouseEventArgs e)
 		{
 			if (e.Button == MouseButtons.Left)
-				Invoke((Action)HideButtonTable);
+			{
+				SetTimeout.OnGui((Action)HideButtonTable, 10, this);
+			}
 		}
 		private void HideButtonTable()
 		{
@@ -426,7 +438,7 @@ namespace ImgurWin
 					{
 						List<string> strs = new List<string>();
 						for (int i = 0; i < imageUrls.Length; i++)
-							strs.Add("<a href=\"" + imageUrls[i] + "\"><img src=\"" + imageUrlsWithSuffix[i] + "\" /></a>");
+							strs.Add("<a href=\"" + imageUrls[i] + "\" target=\"_blank\"><img src=\"" + imageUrlsWithSuffix[i] + "\" /></a>");
 						Clipboard.SetText(string.Join(Environment.NewLine, strs));
 					}
 					else if (type == "Linked BBCode")
@@ -567,7 +579,7 @@ namespace ImgurWin
 				SetTimeout.AfterGuiResumesThenOnBackground(() =>
 				{
 					string contentType;
-					byte[] imgData = ImageHelper.GetEfficientCompressedImageData(imgSrc, out contentType);
+					byte[] imgData = ImageHelper.GetEfficientCompressedImageData(imgSrc, out contentType, cfg.hqMode);
 
 					imgSrc.Dispose();
 
@@ -674,7 +686,7 @@ namespace ImgurWin
 						try
 						{
 							string mimeType;
-							byte[] imgData = ImageHelper.GetEfficientCompressedImageData(img, out mimeType);
+							byte[] imgData = ImageHelper.GetEfficientCompressedImageData(img, out mimeType, cfg.hqMode);
 
 							if (imgData.Length >= ImageHelper.tenMegabytes)
 							{

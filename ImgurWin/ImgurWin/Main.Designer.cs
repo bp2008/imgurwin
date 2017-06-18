@@ -55,6 +55,7 @@
 			this.btnFavoriteLink2 = new System.Windows.Forms.Button();
 			this.btnFavoriteLink3 = new System.Windows.Forms.Button();
 			this.btnFavoriteLink4 = new System.Windows.Forms.Button();
+			this.cbHighQuality = new System.Windows.Forms.CheckBox();
 			((System.ComponentModel.ISupportInitialize)(this.pbImage)).BeginInit();
 			this.contextMenuStrip_pictureBox.SuspendLayout();
 			this.statusStrip1.SuspendLayout();
@@ -293,12 +294,25 @@
 			this.btnFavoriteLink4.Text = "Favorite Link 4";
 			this.btnFavoriteLink4.UseVisualStyleBackColor = true;
 			// 
+			// cbHighQuality
+			// 
+			this.cbHighQuality.Location = new System.Drawing.Point(259, 0);
+			this.cbHighQuality.Name = "cbHighQuality";
+			this.cbHighQuality.Size = new System.Drawing.Size(35, 64);
+			this.cbHighQuality.TabIndex = 21;
+			this.cbHighQuality.Tag = "";
+			this.cbHighQuality.Text = "HQ";
+			this.toolTip1.SetToolTip(this.cbHighQuality, "In High Quality mode, image size is sacrificed in exchange for higher quality.");
+			this.cbHighQuality.UseVisualStyleBackColor = true;
+			this.cbHighQuality.CheckedChanged += new System.EventHandler(this.cbHighQuality_CheckedChanged);
+			// 
 			// Main
 			// 
 			this.AllowDrop = true;
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
 			this.ClientSize = new System.Drawing.Size(424, 441);
+			this.Controls.Add(this.cbHighQuality);
 			this.Controls.Add(this.btnFavoriteLink4);
 			this.Controls.Add(this.btnFavoriteLink3);
 			this.Controls.Add(this.btnFavoriteLink2);
@@ -365,6 +379,7 @@
 		private System.Windows.Forms.ContextMenuStrip contextMenuStrip_pictureBox;
 		private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem_deleteLastImage;
 		private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem_deleteAllLastOperationImages;
+		private System.Windows.Forms.CheckBox cbHighQuality;
 	}
 }
 

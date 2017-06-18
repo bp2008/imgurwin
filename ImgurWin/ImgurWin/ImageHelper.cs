@@ -62,20 +62,23 @@ namespace ImgurWin
 			else
 				return "application/octet-stream";
 		}
-		public static byte[] GetEfficientCompressedImageData(Image imgSrc, out string mimeType)
+		public static byte[] GetEfficientCompressedImageData(Image imgSrc, out string mimeType, bool hqMode)
 		{
-			byte[] imgDataJpeg = SaveImageToByteArray(imgSrc, 80);
+			int jpegQuality = hqMode ? 90 : 80;
+			double pngPreference = hqMode ? 1.6 : 1.2;
+
+			byte[] imgDataJpeg = SaveImageToByteArray(imgSrc, jpegQuality);
 			byte[] imgDataPng = SaveImageToByteArray(imgSrc);
 			byte[] imgData;
 
 			// Choose PNG format if it is not a significant size penalty, because PNG is lossless.
-			if (imgDataPng.Length <= imgDataJpeg.Length * 1.2 && imgDataPng.Length < tenMegabytes)
+			if (imgDataPng.Length <= imgDataJpeg.Length * pngPreference && imgDataPng.Length < tenMegabytes)
 				imgData = imgDataPng;
 			else
 				imgData = imgDataJpeg;
 
 			// If the image is too large, reduce its quality until it is not too large
-			for (int jpegQuality = 80; imgData.Length >= tenMegabytes && jpegQuality >= 0; jpegQuality -= 10)
+			for (; imgData.Length >= tenMegabytes && jpegQuality >= 0; jpegQuality -= 10)
 				imgData = SaveImageToByteArray(imgSrc, jpegQuality);
 
 			mimeType = imgData == imgDataPng ? "image/png" : "image/jpeg";
